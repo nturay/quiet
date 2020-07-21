@@ -31,6 +31,8 @@ encoder_options *encoder_profile(json_t *root, const char *profilename) {
         const char *scheme = json_string_value(v);
         if (strcmp(scheme, "gmsk") == 0) {
             opt->encoding = gmsk_encoding;
+        } else if (strcmp(scheme, "fsk") == 0) {
+            opt->encoding = fsk_encoding;
         } else {
             opt->encoding = modem_encoding; // this will be overriden later if ofdm
             opt->mod_scheme = (quiet_modulation_scheme_t)liquid_getopt_str2mod(scheme);
@@ -210,6 +212,8 @@ decoder_options *decoder_profile(json_t *root, const char *profilename) {
         const char *scheme = json_string_value(v);
         if (strcmp(scheme, "gmsk") == 0) {
             opt->encoding = gmsk_encoding;
+        } else if (strcmp(scheme, "fsk") == 0) {
+            opt->encoding = fsk_encoding;
         } else {
             opt->encoding = modem_encoding; // this will be overriden later if ofdm
         }

@@ -344,6 +344,9 @@ typedef enum quiet_modulation_schemes {
     /// amplitude phase-shift keying-256
     quiet_modulation_apsk256,
 
+    /// frequency shift keying
+    quiet_modulation_fsk,
+
     /// binary phase-shift keying
     quiet_modulation_bpsk,
 
@@ -427,6 +430,9 @@ typedef enum encodings {
      * computational capacity.
      */
     gmsk_encoding,
+
+    // Encode/decode in FSK mode
+    fsk_encoding,
 } quiet_encoding_t;
 
 /**

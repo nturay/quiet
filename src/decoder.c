@@ -226,6 +226,18 @@ static void decoder_gmsk_create(const decoder_options *opt, decoder *d) {
     d->frame.gmsk = gmsk;
 }
 
+static void decoder_fsk_create(const decoder_options *opt, decoder *d) {
+    fsk_decoder fsk;
+
+    fsk.framesync = fskframesync_create(decoder_on_decode, d);
+
+    size_t symbolbuf_len = 256;
+    d->symbolbuf = malloc(symbolbuf_len * sizeof(float complex));
+    d->symbolbuf_len = symbolbuf_len;
+
+    d->frame.fsk = fsk;
+}
+
 decoder *quiet_decoder_create(const decoder_options *opt, float sample_rate) {
     decoder *d = malloc(sizeof(decoder));
 
@@ -240,6 +252,9 @@ decoder *quiet_decoder_create(const decoder_options *opt, float sample_rate) {
         break;
     case gmsk_encoding:
         decoder_gmsk_create(opt, d);
+        break;
+    case fsk_encoding:
+        decoder_fsk_create(opt, d);
         break;
     }
 
@@ -592,6 +607,11 @@ ssize_t quiet_decoder_consume(decoder *d, const sample_t *samplebuf, size_t samp
             }
 
             break;
+        case fsk_encoding:
+            fskframesync_execute(d->frame.fsk.framesync, d->symbolbuf,
+                                      symbol_len);
+
+            break;
         }
     }
 
@@ -608,6 +628,9 @@ bool quiet_decoder_frame_in_progress(decoder *d) {
         break;
     case gmsk_encoding:
         return gmskframesync_is_frame_open(d->frame.gmsk.framesync);
+        break;
+    case fsk_encoding:
+        return fskframesync_is_frame_open(d->frame.fsk.framesync);
         break;
     }
 }
@@ -680,6 +703,10 @@ void quiet_decoder_flush(decoder *d) {
         gmskframesync_execute(d->frame.gmsk.framesync, d->symbolbuf,
                               symbol_len);
         break;
+    case fsk_encoding:
+        fskframesync_execute(d->frame.fsk.framesync, d->symbolbuf,
+                                   symbol_len);
+        break;
     }
 }
 
@@ -709,6 +736,9 @@ void quiet_decoder_destroy(decoder *d) {
         break;
     case gmsk_encoding:
         gmskframesync_destroy(d->frame.gmsk.framesync);
+        break;
+    case fsk_encoding:
+        fskframesync_destroy(d->frame.fsk.framesync);
         break;
     }
     if (d->resampler) {
