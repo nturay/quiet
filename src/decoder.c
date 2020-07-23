@@ -230,6 +230,21 @@ static void decoder_fsk_create(const decoder_options *opt, decoder *d) {
     fsk_decoder fsk;
 
     fsk.framesync = fskframesync_create(decoder_on_decode, d);
+    fskframesync_set_bandwidth(fsk.framesync, 0.25f);
+    fskframesync_set_header_len(fsk.framesync, 0);
+    if (opt->is_debug) {
+        fskframesync_debug_enable(fsk.framesync);
+    }
+    if (opt->header_override_defaults) {
+        fskframegenprops_s header_props = {
+            .check = opt->header_checksum_scheme,
+            .fec0 = opt->header_inner_fec_scheme,
+            .fec1 = opt->header_outer_fec_scheme,
+            .bits_per_symbol = 3,
+            .samples_per_symbol = 100,
+        };
+        fskframesync_set_header_props(fsk.framesync, &header_props);
+    }
 
     size_t symbolbuf_len = 256;
     d->symbolbuf = malloc(symbolbuf_len * sizeof(float complex));
@@ -609,7 +624,13 @@ ssize_t quiet_decoder_consume(decoder *d, const sample_t *samplebuf, size_t samp
             break;
         case fsk_encoding:
             fskframesync_execute(d->frame.fsk.framesync, d->symbolbuf,
-                                      symbol_len);
+                                 symbol_len);
+            if (d->opt.is_debug) {
+                char fname[50];
+                sprintf(fname, "framesync_%u.out", d->i);
+                fskframesync_debug_print(d->frame.fsk.framesync, fname);
+                d->i++;
+            }
 
             break;
         }

@@ -83,9 +83,27 @@ void encoder_gmsk_create(const encoder_options *opt, encoder *e) {
 void encoder_fsk_create(const encoder_options *opt, encoder *e) {
     fsk_encoder fsk;
 
-    fsk.framegen = fskframegen_create();
-    fskframegen_set_header_len(fsk.framegen, 0);
+    fskframegenprops_s props = {
+        .check = opt->checksum_scheme,
+        .fec0 = opt->inner_fec_scheme,
+        .fec1 = opt->outer_fec_scheme,
+        .bits_per_symbol = 3,
+        .samples_per_symbol = 100,
+    };
+    float bandwidth = 0.25f;
 
+    fsk.framegen = fskframegen_create(&props, bandwidth);
+    fskframegen_set_header_len(fsk.framegen, 0);
+    if (opt->header_override_defaults) {
+        fskframegenprops_s header_props = {
+            .check = opt->header_checksum_scheme,
+            .fec0 = opt->header_inner_fec_scheme,
+            .fec1 = opt->header_outer_fec_scheme,
+            .bits_per_symbol = 3,
+            .samples_per_symbol = 100,
+        };
+        fskframegen_set_header_props(fsk.framegen, &header_props);
+    }
     e->symbolbuf = NULL;
     e->symbolbuf_len = 0;
     fsk.symbols_remaining = 0;

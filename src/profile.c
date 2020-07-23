@@ -62,7 +62,7 @@ encoder_options *encoder_profile(json_t *root, const char *profilename) {
         opt->frame_len = json_integer_value(v);
     }
     if ((v = json_object_get(profile, "ofdm"))) {
-        if (opt->encoding == gmsk_encoding) {
+        if (opt->encoding == gmsk_encoding || opt->encoding == fsk_encoding) {
             free(opt);
             quiet_set_last_error(quiet_profile_invalid_profile);
             return NULL;
@@ -239,7 +239,7 @@ decoder_options *decoder_profile(json_t *root, const char *profilename) {
         }
     }
     if ((v = json_object_get(profile, "ofdm"))) {
-        if (opt->encoding == gmsk_encoding) {
+        if (opt->encoding == gmsk_encoding || opt->encoding == fsk_encoding) {
             free(opt);
             quiet_set_last_error(quiet_profile_invalid_profile);
             return NULL;
